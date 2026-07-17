@@ -1,16 +1,19 @@
 import express from "express";
 import dotenv from "dotenv";
+import analyzeRoute from "./src/routes/analyze.js";
+import healthRoute from "./src/routes/health.js";
+//-----------------------------------------------
 
 dotenv.config();
 
 const app = express();
 app.use(express.json());
+//-----------------------------------------------
+//Routes
+app.use("/analyze", analyzeRoute);
+app.use("/health", healthRoute);
 
-// Health check route
-app.get("/health", (req, res) => {
-  res.json({ status: "ok" });
-});
-
+//------------------------------------------------
 // Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
