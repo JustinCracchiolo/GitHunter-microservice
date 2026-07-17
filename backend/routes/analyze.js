@@ -2,6 +2,7 @@ import express from "express";
 import { fetchGitHubProfile } from "../services/github.js";
 import { analyzeProfile } from "../services/ai.js";
 import { getCache, setCache } from "../services/cache.js";
+import { apiError } from "../utils/errors.js";
 //-----------------------------------------------------
 
 const router = express.Router();
@@ -10,39 +11,45 @@ router.post("/", async (req, res) => {
   const { github_username } = req.body;
 
   if (!github_username) {
-    return res.status(400).json({ error: "github_username is required" });
+    return apiError(res, 400, "github_username is required");
   }
 
   try {
-    
-    //Check to see if user is already in cache before prompting AI
-    const cached = await getCache(github_username)
-    if(cached) {
-        return res.json(JSON.parse(cached))
+    // Check cache
+    const cached = await getCache(github_username);
+    if (cached) {
+      return res.json(JSON.parse(cached));
     }
 
     // Fetch GitHub data
     const data = await fetchGitHubProfile(github_username);
 
-    // Send data to Gemini
+    // AI analysis
     const aiAnalysis = await analyzeProfile(data);
 
-    // Return combined result: user data, repos, and ai analysis
     const response = {
       profile: data.user,
       repos: data.repos,
       analysis: aiAnalysis
-    }
+    };
 
-    //Update the cache 
-    await setCache(github_username, res)
+    // Cache result
+    await setCache(github_username, response);
 
-    //return response
     res.json(response);
 
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Failed to analyze GitHub profile" });
+
+    if (err.message === "GitHub user not found") {
+      return apiError(res, 404, "GitHub user not found");
+    }
+
+    if (err.message === "AI analysis failed") {
+      return apiError(res, 500, "AI failed to analyze profile");
+    }
+
+    return apiError(res, 500, "Unexpected server error");
   }
 });
 

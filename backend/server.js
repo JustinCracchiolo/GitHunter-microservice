@@ -2,12 +2,17 @@ import express from "express";
 import dotenv from "dotenv";
 import analyzeRoute from "./src/routes/analyze.js";
 import healthRoute from "./src/routes/health.js";
+import cors from "cors";
 //-----------------------------------------------
 
 dotenv.config();
 
 const app = express();
 app.use(express.json());
+
+app.use(cors({
+  origin: "*",   // during development only
+}));
 //-----------------------------------------------
 //Routes
 app.use("/analyze", analyzeRoute);
