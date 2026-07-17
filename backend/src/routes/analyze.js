@@ -1,7 +1,7 @@
 import express from "express";
 import { fetchGitHubProfile } from "../services/github.js";
 import { analyzeProfile } from "../services/ai.js";
-import { getCache, setCache } from "../services/cache.js";
+//import { getCache, setCache } from "../services/cache.js";
 import { apiError } from "../utils/errors.js";
 //-----------------------------------------------------
 
@@ -16,10 +16,12 @@ router.post("/", async (req, res) => {
 
   try {
     // Check cache
+    /*
     const cached = await getCache(github_username);
     if (cached) {
       return res.json(JSON.parse(cached));
     }
+    */
 
     // Fetch GitHub data
     const data = await fetchGitHubProfile(github_username);
@@ -34,7 +36,7 @@ router.post("/", async (req, res) => {
     };
 
     // Cache result
-    await setCache(github_username, response);
+    //await setCache(github_username, response);
 
     res.json(response);
 
